@@ -4,4 +4,5 @@ global.chai = chai
 global.expect = chai.expect
 global.should = chai.should()
 
-import 'createAction.spec'
+import '../src/createAction'
+import './test.spec'
