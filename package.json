@@ -1,0 +1,60 @@
+{
+  "name": "vuex-actions",
+  "version": "0.0.0",
+  "description": "Vuex action creator, supports promise-based async actions, inspired by redux-actions.",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "npm run lint && npm run build-cjs && npm run build-umd",
+    "build-cjs": "rimraf lib && babel ./index.js -d lib",
+    "build-umd": "rimraf umd && webpack -p",
+    "test": "babel-node ./node_modules/karma/bin/karma start karma.conf.js",
+    "test:debug": "npm run test -- --browsers=Chrome --single-run=false",
+    "lint": "eslint --format node_modules/eslint-friendly-formatter ./src/*.js",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weinot/vuex-actions.git"
+  },
+  "keywords": [
+    "vue",
+    "vuex",
+    "async",
+    "action",
+    "actions",
+    "vuex actions"
+  ],
+  "author": "vnot",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/weinot/vuex-actions/issues"
+  },
+  "homepage": "https://github.com/weinot/vuex-actions#readme",
+  "devDependencies": {
+    "babel-cli": "^6.11.4",
+    "babel-core": "^6.11.4",
+    "babel-eslint": "^6.1.2",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-es2015-rollup": "^1.1.1",
+    "babel-preset-stage-0": "^6.5.0",
+    "chai": "^3.5.0",
+    "eslint": "^3.1.1",
+    "eslint-config-standard": "^5.3.5",
+    "eslint-friendly-formatter": "^2.0.6",
+    "eslint-plugin-promise": "^2.0.0",
+    "eslint-plugin-standard": "^2.0.0",
+    "karma": "^1.1.2",
+    "karma-chai": "^0.1.0",
+    "karma-coverage": "^1.1.1",
+    "karma-mocha": "^1.1.1",
+    "karma-mocha-reporter": "^2.1.0",
+    "karma-rollup-preprocessor": "^2.0.2",
+    "mocha": "^3.0.1",
+    "rollup": "^0.34.3",
+    "rollup-plugin-babel": "^2.6.1",
+    "uglify-js": "^2.7.0",
+    "vue": "^1.0.26",
+    "vuex": "^1.0.0-rc.2"
+  }
+}
