@@ -4,6 +4,7 @@
     "mocha" : true
   },
   "globals" : {
+    "chai": false,
     "expect" : false,
     "should" : false
   }

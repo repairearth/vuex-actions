@@ -4,5 +4,9 @@ global.chai = chai
 global.expect = chai.expect
 global.should = chai.should()
 
+// source code
 import '../src/createAction'
-import './test.spec'
+import '../src/handleAction'
+
+// test code
+import './vuex1.x.spec'

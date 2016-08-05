@@ -13,7 +13,7 @@ const handleAction = handlers => (state, mutation) => {
       handlers.call(this, state, mutation)
     }
   } else {
-    const handler = handlers[status]
+    const handler = handlers[status] || handlers[STATUS.SUCCESS]
     isFunc(handler) && handler.call(this, state, payload)
   }
 }

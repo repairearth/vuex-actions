@@ -44,20 +44,22 @@ function createAction (type, payloadCreator) {
 
     if (isPromise(payload)) {
       commitAsPending(commit, action)
-      payload.then(
+      return payload.then(
         result => commitAsSuccess(commit, {...action, payload: result}),
         error => commitAsError(commit, {...action, payload: error})
       )
-    } else if (hasPromise(payload)) {
+    }
+
+    if (hasPromise(payload)) {
       const promiseQueue = buildPromiseQueue(payload)
       commitAsPending(commit, action)
-      promiseQueue
+      return promiseQueue
         .run(...args)
         .then(result => commitAsSuccess(commit, action))
         .catch(error => commitAsError(commit, {...action, payload: error}))
-    } else {
-      commit(type, payload)
     }
+
+    return commitAsSuccess(commit, action)
   }
 }
 
