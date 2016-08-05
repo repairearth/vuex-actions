@@ -76,6 +76,31 @@ describe('vuex-action tests for vuex 1.x', () => {
     })
   })
 
-  describe('async actions', () => {
+  describe('async actions with a single promise payload', () => {
+    const vm = new Vue({
+      store,
+      vuex: {
+        actions: {
+          change: createAction(CHANGE)
+        }
+      }
+    })
+
+    it('resolved', done => {
+      vm.change(Promise.resolve(1))
+        .then(() => {
+          expect(store.state.obj).to.equal(1)
+        })
+        .then(done)
+    })
+
+    it('rejected', done => {
+      vm.change(Promise.reject(new Error('wow, it\'s rejected')))
+        .then(() => {
+          expect(store.state.obj).to.be.an.instanceof(Error)
+          expect(store.state.obj.message).to.be.equal('wow, it\'s rejected')
+        })
+        .then(done)
+    })
   })
 })
