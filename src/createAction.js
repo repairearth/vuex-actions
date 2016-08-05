@@ -3,7 +3,8 @@ import {
   isPromise,
   hasPromise,
   buildPromiseQueue,
-  STATUS
+  STATUS,
+  $inject
 } from './utils'
 
 const dispatchAction = (commit, action, status) => {
@@ -25,13 +26,6 @@ const commitAsSuccess = (commit, action) => {
 
 const commitAsError = (commit, action) => {
   dispatchAction(commit, action, STATUS.ERROR)
-}
-
-const $inject = fn => (...deps) => {
-  if (isFunc(fn) && deps.length) {
-    fn._deps = deps
-  }
-  return fn
 }
 
 function createAction (type, payloadCreator) {

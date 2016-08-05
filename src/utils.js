@@ -17,6 +17,13 @@ export const getDeps = fn => {
   return null
 }
 
+export const $inject = fn => (...deps) => {
+  if (isFunc(fn) && deps.length) {
+    fn._deps = deps
+  }
+  return fn
+}
+
 export const execute = (fn, payload, ...args) => {
   if (!isFunc(fn) || !hasDeps(fn)) return fn
   return fn(...getDeps(fn).map(name => payload[name]), ...args)
