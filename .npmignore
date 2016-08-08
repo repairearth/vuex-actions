@@ -32,6 +32,8 @@ build/Release
 .idea
 example
 node_modules
+build
+src
 test
 jspm_packages
 

@@ -15,7 +15,9 @@ var banner =
 
 rollup.rollup({
   entry: 'src/index.js',
-  plugins: [babel()]
+  plugins: [babel({
+    exclude: 'node_modules/**'
+  })]
 })
 .then(function (bundle) {
   var code = bundle.generate({
@@ -35,16 +37,6 @@ rollup.rollup({
     }
   }).code
   return write('dist/vuex-actions.min.js', minified)
-})
-.then(function () {
-  return rollup.rollup({
-    entry: 'src/plugins/logger.js',
-    plugins: [babel()]
-  }).then(function (bundle) {
-    return write('logger.js', bundle.generate({
-      format: 'cjs'
-    }).code)
-  })
 })
 .catch(logError)
 
