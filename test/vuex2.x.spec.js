@@ -1,96 +1,294 @@
-import { expect } from 'chai'
-import { handleAction, createAction } from '../src'
+import Vue from 'vue'
+import multidep from 'multidep'
+import { createAction, handleAction, $inject } from '../src'
+import { STATUS } from '../src/utils'
 
-describe('handleAction()', () => {
-  const type = 'TYPE'
-  const prevState = { counter: 3 }
+const multidepRequire = multidep('test/multidep.json')
+const Vuex = multidepRequire('vuex', '2.0.0-rc.3')
+const { mapActions } = Vuex
 
-  describe('single handler form', () => {
-    describe('resulting reducer', () => {
-      it('returns previous state if type does not match', () => {
-        const reducer = handleAction('NOTTYPE', () => null)
-        expect(reducer(prevState, { type })).to.equal(prevState)
+Vue.use(Vuex)
+
+const CHANGE = 'change'
+const SUCCESS_ONLY = 'success_only'
+const MOD_ACTION = 'mod_action'
+
+describe('vuex-action tests for vuex 2.x', () => {
+  const store = new Vuex.Store({
+    state: {
+      obj: null,
+      so: null,
+      status: ''
+    },
+    mutations: {
+      [CHANGE]: handleAction({
+        pending (state, mutation) {
+          state.obj = mutation
+        },
+        success (state, mutation) {
+          state.obj = mutation
+        },
+        error (state, mutation) {
+          state.obj = mutation
+        }
+      }),
+      [SUCCESS_ONLY]: handleAction((state, mutation) => {
+        state.so = mutation
+      })
+    },
+    actions: {
+      [CHANGE]: createAction(CHANGE),
+      changeWithPayloadCreator: createAction(CHANGE, ({args1, args2, args3}) => ({
+        args1, args2, args3
+      })),
+      [SUCCESS_ONLY]: createAction(SUCCESS_ONLY),
+      [MOD_ACTION]: createAction(MOD_ACTION)
+    },
+    modules: {
+      mod: {
+        state: {
+          obj: null
+        },
+        mutations: {
+          [MOD_ACTION]: handleAction({
+            pending (state, mutation) {
+              state.obj = mutation
+            },
+            success (state, mutation) {
+              state.obj = mutation
+            },
+            error (state, mutation) {
+              state.obj = mutation
+            }
+          })
+        }
+      }
+    },
+    plugins: [
+      store => {
+        store.subscribe((mutation, state) => {
+          state.status = mutation.payload.__status__
+        })
+      }
+    ]
+  })
+
+  describe('create action', () => {
+    it('create an action', () => {
+      const action = createAction(CHANGE)
+      expect(action).to.be.a('function')
+    })
+
+    it('create action without payload creator', () => {
+      const vm = new Vue({
+        store,
+        methods: mapActions(['change'])
       })
 
-      it('returns default state if type does not match', () => {
-        const reducer = handleAction('NOTTYPE', () => null, { counter: 7 })
-        expect(reducer(undefined, { type }))
-          .to.deep.equal({
-            counter: 7
-          })
+      expect(vm.change).to.be.a('function')
+      vm.change(1)
+      expect(store.state.obj).to.equal(1)
+      vm.change(null)
+      expect(store.state.obj).to.be.null
+      vm.change({a: 1})
+      expect(store.state.obj).to.be.an('object')
+    })
+
+    it('create action with a payload creator', () => {
+      const vm = new Vue({
+        store,
+        methods: mapActions(['changeWithPayloadCreator'])
       })
 
-      it('accepts single function as handler', () => {
-        const reducer = handleAction(type, (state, action) => ({
-          counter: state.counter + action.payload
-        }))
-        expect(reducer(prevState, { type, payload: 7 }))
-          .to.deep.equal({
-            counter: 10
-          })
+      expect(vm.changeWithPayloadCreator).to.be.a('function')
+      vm.changeWithPayloadCreator({args1: 1, args2: 2})
+      expect(store.state.obj).to.eql({ args1: 1, args2: 2, args3: undefined })
+      vm.changeWithPayloadCreator({args1: 1, args2: 2, args3: 3})
+      expect(store.state.obj).to.eql({ args1: 1, args2: 2, args3: 3 })
+    })
+  })
+
+  describe('async actions', () => {
+    it('resolve a single promise payload', done => {
+      store.dispatch(CHANGE, Promise.resolve(1))
+        .then(() => {
+          expect(store.state.obj).to.equal(1)
+        })
+        .then(done)
+    })
+
+    it('reject a single promise payload', done => {
+      store.dispatch(CHANGE, Promise.reject(new Error('wow, it\'s rejected')))
+        .then(() => {
+          expect(store.state.obj).to.be.an.instanceof(Error)
+          expect(store.state.obj.message).to.equal('wow, it\'s rejected')
+        })
+        .then(done)
+    })
+
+    it('handle parallel promises in payload', done => {
+      const p1 = new Promise((resolve) => setTimeout(() => resolve(1), 10))
+      const p2 = new Promise((resolve) => setTimeout(() => resolve(2), 20))
+      store.dispatch(CHANGE, {
+        p1,
+        p2,
+        other: 3
+      }).then(() => {
+        expect(store.state.obj).to.eql({ p1: 1, p2: 2, other: 3 })
+        expect(store.state.status).to.equal(STATUS.SUCCESS)
+        done()
       })
+      expect(store.state.status).to.equal(STATUS.PENDING)
+    })
 
-      it('accepts action function as action type', () => {
-        const incrementAction = createAction(type)
-        const reducer = handleAction(incrementAction, (state, action) => ({
-          counter: state.counter + action.payload
-        }))
-
-        expect(reducer(prevState, incrementAction(7)))
-          .to.deep.equal({
-            counter: 10
-          })
+    it('handle promises in payload with dependencies', done => {
+      const p1 = Promise.resolve(1)
+      const p2 = Promise.resolve(2)
+      const getP3 = p2 => Promise.resolve(p2 + 1)
+      const getP4 = p3 => Promise.resolve(p3 + 1)
+      store.dispatch(CHANGE, {
+        p1,
+        p2,
+        p3: $inject(getP3)('p2'),
+        p4: $inject(getP4)('p3'),
+        other: 'other'
+      }).then(() => {
+        expect(store.state.obj).to.eql({ p1: 1, p2: 2, p3: 3, p4: 4, other: 'other' })
+        done()
       })
+    })
 
-      it('accepts single function as handler and a default state', () => {
-        const reducer = handleAction(type, (state, action) => ({
-          counter: state.counter + action.payload
-        }), { counter: 3 })
-        expect(reducer(undefined, { type, payload: 7 }))
-          .to.deep.equal({
-            counter: 10
-          })
+    it('handle rejected promise in payload', done => {
+      const p1 = new Promise((resolve) => setTimeout(() => resolve(1), 10))
+      const p2 = new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('something went wrong')), 20)
+      })
+      store.dispatch(CHANGE, {
+        p1,
+        p2,
+        other: 3
+      }).then(() => {
+        expect(store.state.obj).to.be.an('error')
+        expect(store.state.obj.message).to.equal('something went wrong')
+        expect(store.state.status).to.equal(STATUS.ERROR)
+        done()
+      })
+      expect(store.state.status).to.equal(STATUS.PENDING)
+    })
+
+    it('contain origin args in the dependent function', () => {
+      const testArgs1 = createAction(CHANGE, (...args) => ({
+        p1: new Promise((resolve) => setTimeout(() => resolve(1), 10)),
+        p2: new Promise((resolve) => setTimeout(() => resolve(2), 20)),
+        p3: $inject((p1, p2, ...args) => {
+          expect(p1).to.equal(1)
+          expect(p2).to.equal(2)
+          expect(args).to.be.an('array')
+          expect(args.length).to.equal(2)
+          expect(args[0]).to.equal('arg1')
+          expect(args[1]).to.equal('arg2')
+          return Promise.resolve(3)
+        })('p1', 'p2')
+      }))
+
+      const testArgs2 = createAction(CHANGE, options => ({
+        p1: new Promise((resolve) => setTimeout(() => resolve(1), 10)),
+        p2: new Promise((resolve) => setTimeout(() => resolve(2), 20)),
+        p3: $inject((p1, p2, options) => {
+          expect(p1).to.equal(1)
+          expect(p2).to.equal(2)
+          expect(options).to.be.an('object')
+          expect(options.opt1).to.equal('opt1')
+          expect(options.opt2).to.equal('opt2')
+          return Promise.resolve(3)
+        })('p1', 'p2')
+      }))
+
+      testArgs1(store, 'args1', 'arg2')
+      testArgs2(store, {
+        opt1: 'opt1',
+        opt2: 'opt2'
       })
     })
   })
 
-  describe('map of handlers form', () => {
-    describe('resulting reducer', () => {
-      it('returns previous state if type does not match', () => {
-        const reducer = handleAction('NOTTYPE', { next: () => null })
-        expect(reducer(prevState, { type })).to.equal(prevState)
+  describe('handle action', () => {
+    it('pass success handler to handleAction', () => {
+      store.dispatch(SUCCESS_ONLY, Promise.reject(new Error('dropped'))).then(() => {
+        expect(store.state.so).to.be.null
       })
+      store.dispatch(SUCCESS_ONLY, Promise.resolve('take it!')).then(() => {
+        expect(store.state.so).to.equal('take it!')
+      })
+    })
+  })
 
-      it('uses `next()` if action does not represent an error', () => {
-        const reducer = handleAction(type, {
-          next: (state, action) => ({
-            counter: state.counter + action.payload
-          })
+  describe('modules', () => {
+    it('resolve a single promise payload', done => {
+      store.dispatch(MOD_ACTION, Promise.resolve(1))
+        .then(() => {
+          expect(store.state.mod.obj).to.equal(1)
         })
-        expect(reducer(prevState, { type, payload: 7 }))
-          .to.deep.equal({
-            counter: 10
-          })
-      })
+        .then(done)
+    })
 
-      it('uses `throw()` if action represents an error', () => {
-        const reducer = handleAction(type, {
-          throw: (state, action) => ({
-            counter: state.counter + action.payload
-          })
+    it('reject a single promise payload', done => {
+      store.dispatch(MOD_ACTION, Promise.reject(new Error('wow, it\'s rejected')))
+        .then(() => {
+          expect(store.state.mod.obj).to.be.an.instanceof(Error)
+          expect(store.state.mod.obj.message).to.equal('wow, it\'s rejected')
         })
-        expect(reducer(prevState, { type, payload: 7, error: true }))
-          .to.deep.equal({
-            counter: 10
-          })
-      })
+        .then(done)
+    })
 
-      it('returns previous state if matching handler is not function', () => {
-        const reducer = handleAction(type, { next: null, error: 123 })
-        expect(reducer(prevState, { type, payload: 123 })).to.equal(prevState)
-        expect(reducer(prevState, { type, payload: 123, error: true }))
-          .to.equal(prevState)
+    it('handle parallel promises in payload', done => {
+      const p1 = new Promise((resolve) => setTimeout(() => resolve(1), 10))
+      const p2 = new Promise((resolve) => setTimeout(() => resolve(2), 20))
+      store.dispatch(MOD_ACTION, {
+        p1,
+        p2,
+        other: 3
+      }).then(() => {
+        expect(store.state.mod.obj).to.eql({ p1: 1, p2: 2, other: 3 })
+        expect(store.state.status).to.equal(STATUS.SUCCESS)
+        done()
       })
+      expect(store.state.status).to.equal(STATUS.PENDING)
+    })
+
+    it('handle promises in payload with dependencies', done => {
+      const p1 = Promise.resolve(1)
+      const p2 = Promise.resolve(2)
+      const getP3 = p2 => Promise.resolve(p2 + 1)
+      const getP4 = p3 => Promise.resolve(p3 + 1)
+      store.dispatch(MOD_ACTION, {
+        p1,
+        p2,
+        p3: $inject(getP3)('p2'),
+        p4: $inject(getP4)('p3'),
+        other: 'other'
+      }).then(() => {
+        expect(store.state.mod.obj).to.eql({ p1: 1, p2: 2, p3: 3, p4: 4, other: 'other' })
+        done()
+      })
+    })
+
+    it('handle rejected promise in payload', done => {
+      const p1 = new Promise((resolve) => setTimeout(() => resolve(1), 10))
+      const p2 = new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('something went wrong')), 20)
+      })
+      store.dispatch(MOD_ACTION, {
+        p1,
+        p2,
+        other: 3
+      }).then(() => {
+        expect(store.state.mod.obj).to.be.an('error')
+        expect(store.state.mod.obj.message).to.equal('something went wrong')
+        expect(store.state.status).to.equal(STATUS.ERROR)
+        done()
+      })
+      expect(store.state.status).to.equal(STATUS.PENDING)
     })
   })
 })

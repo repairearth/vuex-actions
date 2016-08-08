@@ -10,3 +10,4 @@ import '../src/handleAction'
 
 // test code
 import './vuex1.x.spec'
+import './vuex2.x.spec'

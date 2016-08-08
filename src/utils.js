@@ -60,9 +60,7 @@ export const buildPromiseQueue = payload => {
   }
 
   function run (...args) {
-    promiseQueue.reduce((acc, props) => {
-      return acc.then(() => resolveProps(props, ...args))
-    }, Promise.resolve(1))
+    return promiseQueue.reduce((acc, props) => acc.then(() => resolveProps(props, ...args)), Promise.resolve(1))
   }
 
   function resolveProps (props, ...args) {

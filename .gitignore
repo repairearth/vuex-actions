@@ -29,6 +29,7 @@ build/Release
 # Dependency directories
 .idea
 node_modules
+test/multidep_modules
 jspm_packages
 
 # Optional npm cache directory

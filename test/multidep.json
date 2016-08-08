@@ -1,0 +1,6 @@
+{
+  "path": "test/multidep_modules",
+  "versions": {
+    "vuex": ["2.0.0-rc.3"]
+  }
+}

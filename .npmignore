@@ -32,6 +32,7 @@ build/Release
 .idea
 example
 node_modules
+test
 jspm_packages
 
 # Optional npm cache directory
