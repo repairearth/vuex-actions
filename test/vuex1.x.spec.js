@@ -127,7 +127,7 @@ describe('vuex-action tests for vuex 1.x', () => {
     it('reject a single promise payload', done => {
       vm.change(Promise.reject(new Error('wow, it\'s rejected')))
         .then(() => {
-          expect(store.state.obj).to.be.an.instanceof(Error)
+          expect(store.state.obj).to.be.an('error')
           expect(store.state.obj.message).to.equal('wow, it\'s rejected')
         })
         .then(done)

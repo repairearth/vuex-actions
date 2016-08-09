@@ -33,7 +33,6 @@ build/Release
 example
 node_modules
 build
-src
 test
 jspm_packages
 
@@ -45,7 +44,9 @@ jspm_packages
 
 # configurations
 .eslintrc
+.eslintignore
 .babelrc
 .gitignore
 .npmignore
+.travis.yml
 
