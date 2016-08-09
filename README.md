@@ -8,7 +8,7 @@
 [![npm](https://img.shields.io/npm/dt/vuex-actions.svg?style=flat)](https://www.npmjs.com/package/vuex-actions)
 [![npm](https://img.shields.io/npm/l/vuex-actions.svg?maxAge=2592000)]()
 
-Well tested with vuex@1.0.0-rc.2 and vuex@2.0.0-rc.3, for other versions, use at your own risk :simple_smile:.
+Well tested with vuex@1.0.0-rc.2 and vuex@2.0.0-rc.3, for other versions, use at your own risk :red_circle:.
 
 ```js
 npm install --save vuex-actions
