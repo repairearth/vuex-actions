@@ -3,8 +3,7 @@ import {
   isPromise,
   hasPromise,
   buildPromiseQueue,
-  STATUS,
-  $inject
+  STATUS
 } from './utils'
 
 const dispatchAction = (commit, action, status) => {
@@ -57,7 +56,4 @@ function createAction (type, payloadCreator) {
   }
 }
 
-export {
-  $inject,
-  createAction
-}
+export default createAction
