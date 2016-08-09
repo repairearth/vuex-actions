@@ -188,13 +188,36 @@ const testArgs = createAction('CHANGE', options => ({
     expect(options).to.be.an('object')
     expect(options.opt1).to.equal('opt1')
     expect(options.opt2).to.equal('opt2')
-    return Promise.resolve(3)
+    return Promise.resolve(p1 + p2)
   })('p1', 'p2')
 }))
 
 testArgs(vm.$store, {
   opt1: 'opt1',
   opt2: 'opt2'
+})
+```
+
+### Usage with plugin
+
+```js
+const store = new Vuex.Store({
+  state: {
+    obj: null,
+    status: ''
+  },
+  plugins: [
+    store => {
+      store.subscribe((mutation, state) => {
+		// vuex 1.x
+        state.status = mutation.payload[0].__status__
+		// vuex 2.x
+		state.status = mutation.payload.__status__
+		
+		// status can be one of ['pending', 'success', 'error']
+      })
+    }
+  ]
 })
 ```
 
