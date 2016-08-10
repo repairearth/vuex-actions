@@ -40,15 +40,14 @@ export const buildPromiseQueue = payload => {
   return { run }
 
   function parseDependencies (promiseQueue) {
-    let nextProps = props.filter(prop => parsedProps.indexOf(prop) === -1)
+    const remainProps = props.filter(prop => parsedProps.indexOf(prop) === -1)
+    let nextProps = []
 
-    if (!nextProps.length) return
+    if (!remainProps.length) return
 
-    nextProps.forEach((prop, index) => {
+    remainProps.forEach(prop => {
       let isAllDepsParsed = getDeps(payload[prop]).every(dep => parsedProps.indexOf(dep) > -1 || !(dep in payload))
-      if (!isAllDepsParsed) {
-        nextProps.splice(index, 1)
-      }
+      isAllDepsParsed && nextProps.push(prop)
     })
 
     if (nextProps.length) {

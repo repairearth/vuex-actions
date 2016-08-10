@@ -1,5 +1,5 @@
 /*!
- * Vuex actions v1.0.0
+ * Vuex actions v1.0.2
  * (c) 2016 vnot
  * Released under the MIT License.
  */
@@ -87,24 +87,23 @@
     return { run: run };
 
     function parseDependencies(promiseQueue) {
-      var nextProps = props.filter(function (prop) {
+      var remainProps = props.filter(function (prop) {
         return parsedProps.indexOf(prop) === -1;
       });
+      var nextProps = [];
 
-      if (!nextProps.length) return;
+      if (!remainProps.length) return;
 
-      nextProps.forEach(function (prop, index) {
+      remainProps.forEach(function (prop) {
         var isAllDepsParsed = getDeps(payload[prop]).every(function (dep) {
           return parsedProps.indexOf(dep) > -1 || !(dep in payload);
         });
-        if (!isAllDepsParsed) {
-          nextProps.splice(index, 1);
-        }
+        isAllDepsParsed && nextProps.push(prop);
       });
 
       if (nextProps.length) {
         promiseQueue.push(nextProps);
-        parsedProps.push.apply(parsedProps, toConsumableArray(nextProps));
+        parsedProps.push.apply(parsedProps, nextProps);
       }
 
       parseDependencies(promiseQueue);

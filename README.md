@@ -159,12 +159,16 @@ const p1 = Promise.resolve(1)
 const p2 = Promise.resolve(2)
 const getP3 = p2 => Promise.resolve(p2 + 1)
 const getP4 = p3 => Promise.resolve(p3 + 1)
+const getP5 = (p3, p4) => Promise.resolve(p3 + p4)
+const getP6 = (p4, p5) => Promise.resolve(p4 + p5)
 
-vm.change({
+store.dispatch(CHANGE, {
   p1,
   p2,
   p3: $inject(getP3)('p2'),
   p4: $inject(getP4)('p3'),
+  p5: $inject(getP5)('p3', 'p4'),
+  p6: $inject(getP6)('p4', 'p5'),
   other: 'other'
 }).then(() => {
   expect(store.state.obj).to.eql({
@@ -172,6 +176,8 @@ vm.change({
     p2: 2,
     p3: 3,
     p4: 4,
+    p5: 7,
+    p6: 11,
     other: 'other'
   })
 })

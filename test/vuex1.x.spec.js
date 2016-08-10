@@ -153,14 +153,19 @@ describe('vuex-action tests for vuex 1.x', () => {
       const p2 = Promise.resolve(2)
       const getP3 = p2 => Promise.resolve(p2 + 1)
       const getP4 = p3 => Promise.resolve(p3 + 1)
+      const getP5 = p4 => Promise.resolve(p4 + 1)
+      const getP6 = (p4, p5) => Promise.resolve(p4 + p5)
+
       vm.change({
         p1,
         p2,
         p3: $inject(getP3)('p2'),
         p4: $inject(getP4)('p3'),
+        p5: $inject(getP5)('p4'),
+        p6: $inject(getP6)('p4', 'p5'),
         other: 'other'
       }).then(() => {
-        expect(store.state.obj).to.eql({ p1: 1, p2: 2, p3: 3, p4: 4, other: 'other' })
+        expect(store.state.obj).to.eql({ p1: 1, p2: 2, p3: 3, p4: 4, p5: 5, p6: 9, other: 'other' })
         done()
       })
     })
