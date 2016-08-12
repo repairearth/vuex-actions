@@ -1,6 +1,6 @@
 {
   "name": "vuex-actions",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Action utilities for Vuex, supports promise-based async actions.",
   "main": "dist/vuex-actions.js",
   "scripts": {
