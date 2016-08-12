@@ -15,7 +15,7 @@ const handleAction = handlers => (state, mutation) => {
   if (isFunc(handlers)) {
     status === STATUS.SUCCESS && handlers(state, payload)
   } else {
-    const handler = handlers[status] || handlers[STATUS.SUCCESS]
+    const handler = handlers[status]
     isFunc(handler) && handler(state, payload)
   }
 }

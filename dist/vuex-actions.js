@@ -1,5 +1,5 @@
 /*!
- * Vuex actions v1.0.2
+ * Vuex actions v1.0.3
  * (c) 2016 vnot
  * Released under the MIT License.
  */
@@ -216,7 +216,7 @@
       if (isFunc(handlers)) {
         status === STATUS.SUCCESS && handlers(state, payload);
       } else {
-        var handler = handlers[status] || handlers[STATUS.SUCCESS];
+        var handler = handlers[status];
         isFunc(handler) && handler(state, payload);
       }
     };
