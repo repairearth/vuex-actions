@@ -1,5 +1,5 @@
 /*!
- * Vuex actions v1.0.3
+ * Vuex actions v1.1.0
  * (c) 2016 vnot
  * Released under the MIT License.
  */
@@ -161,7 +161,7 @@
     dispatchAction(commit, action, STATUS.ERROR);
   };
 
-  function createAction(type, payloadCreator) {
+  var createAction = function createAction(type, payloadCreator) {
     var finalPayloadCreator = isFunc(payloadCreator) ? payloadCreator : function () {
       return arguments.length <= 0 ? undefined : arguments[0];
     };
@@ -199,7 +199,7 @@
 
       return commitAsSuccess(commit, action);
     };
-  }
+  };
 
   /**
    * Using pure function define when it's necessary to bind `this` to the handler
@@ -222,8 +222,16 @@
     };
   };
 
+  var handleMutations = function handleMutations(mutations) {
+    Object.keys(mutations).forEach(function (name) {
+      mutations[name] = handleAction(mutations[name]);
+    });
+    return mutations;
+  };
+
   exports.createAction = createAction;
   exports.handleAction = handleAction;
+  exports.handleMutations = handleMutations;
   exports.$inject = $inject;
 
   Object.defineProperty(exports, '__esModule', { value: true });

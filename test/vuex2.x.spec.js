@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import multidep from 'multidep'
-import { createAction, handleAction, $inject } from '../src'
+import { createAction, handleAction, handleMutations, $inject } from '../src'
 import { STATUS } from '../src/utils'
 
 const multidepRequire = multidep('test/multidep.json')
@@ -12,6 +12,8 @@ Vue.use(Vuex)
 const CHANGE = 'change'
 const SUCCESS_ONLY = 'success_only'
 const MOD_ACTION = 'mod_action'
+const MOD2_ACTION_A = 'mod2_action_a'
+const MOD2_ACTION_B = 'mod2_action_b'
 
 describe('vuex-action tests for vuex 2.x', () => {
   const store = new Vuex.Store({
@@ -42,7 +44,9 @@ describe('vuex-action tests for vuex 2.x', () => {
         args1, args2, args3
       })),
       [SUCCESS_ONLY]: createAction(SUCCESS_ONLY),
-      [MOD_ACTION]: createAction(MOD_ACTION)
+      [MOD_ACTION]: createAction(MOD_ACTION),
+      [MOD2_ACTION_A]: createAction(MOD2_ACTION_A),
+      [MOD2_ACTION_B]: createAction(MOD2_ACTION_B)
     },
     modules: {
       mod: {
@@ -62,6 +66,27 @@ describe('vuex-action tests for vuex 2.x', () => {
             }
           })
         }
+      },
+      mod2: {
+        state: {
+          obj: null
+        },
+        mutations: handleMutations({
+          [MOD2_ACTION_A]: (state, mutation) => {
+            state.obj = mutation
+          },
+          [MOD2_ACTION_B]: {
+            pending (state, mutation) {
+              state.obj = mutation
+            },
+            success (state, mutation) {
+              state.obj = mutation
+            },
+            error (state, mutation) {
+              state.obj = mutation
+            }
+          }
+        })
       }
     },
     plugins: [
@@ -225,6 +250,75 @@ describe('vuex-action tests for vuex 2.x', () => {
       store.dispatch(SUCCESS_ONLY, Promise.resolve('take it!')).then(() => {
         expect(store.state.so).to.equal('take it!')
       })
+    })
+  })
+
+  describe('handle mutations', () => {
+    it('resolve a single promise payload', done => {
+      store.dispatch(MOD2_ACTION_A, Promise.resolve(1))
+        .then(() => {
+          expect(store.state.mod2.obj).to.equal(1)
+        })
+        .then(done)
+    })
+
+    it('reject a single promise payload', done => {
+      store.dispatch(MOD2_ACTION_B, Promise.reject(new Error('wow, it\'s rejected')))
+        .then(() => {
+          expect(store.state.mod2.obj).to.be.an('error')
+          expect(store.state.mod2.obj.message).to.equal('wow, it\'s rejected')
+        })
+        .then(done)
+    })
+
+    it('handle parallel promises in payload', done => {
+      const p1 = new Promise((resolve) => setTimeout(() => resolve(1), 10))
+      const p2 = new Promise((resolve) => setTimeout(() => resolve(2), 20))
+      store.dispatch(MOD2_ACTION_B, {
+        p1,
+        p2,
+        other: 3
+      }).then(() => {
+        expect(store.state.mod2.obj).to.eql({ p1: 1, p2: 2, other: 3 })
+        expect(store.state.status).to.equal(STATUS.SUCCESS)
+        done()
+      })
+      expect(store.state.status).to.equal(STATUS.PENDING)
+    })
+
+    it('handle promises in payload with dependencies', done => {
+      const p1 = Promise.resolve(1)
+      const p2 = Promise.resolve(2)
+      const getP3 = p2 => Promise.resolve(p2 + 1)
+      const getP4 = p3 => Promise.resolve(p3 + 1)
+      store.dispatch(MOD2_ACTION_B, {
+        p1,
+        p2,
+        p3: $inject(getP3)('p2'),
+        p4: $inject(getP4)('p3'),
+        other: 'other'
+      }).then(() => {
+        expect(store.state.mod2.obj).to.eql({ p1: 1, p2: 2, p3: 3, p4: 4, other: 'other' })
+        done()
+      })
+    })
+
+    it('handle rejected promise in payload', done => {
+      const p1 = new Promise((resolve) => setTimeout(() => resolve(1), 10))
+      const p2 = new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('something went wrong')), 20)
+      })
+      store.dispatch(MOD2_ACTION_B, {
+        p1,
+        p2,
+        other: 3
+      }).then(() => {
+        expect(store.state.mod2.obj).to.be.an('error')
+        expect(store.state.mod2.obj.message).to.equal('something went wrong')
+        expect(store.state.status).to.equal(STATUS.ERROR)
+        done()
+      })
+      expect(store.state.status).to.equal(STATUS.PENDING)
     })
   })
 

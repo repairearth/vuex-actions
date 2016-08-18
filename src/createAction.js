@@ -27,7 +27,7 @@ const commitAsError = (commit, action) => {
   dispatchAction(commit, action, STATUS.ERROR)
 }
 
-function createAction (type, payloadCreator) {
+const createAction = (type, payloadCreator) => {
   const finalPayloadCreator = isFunc(payloadCreator) ? payloadCreator : (...args) => args[0]
 
   return ({ dispatch, commit }, ...args) => {

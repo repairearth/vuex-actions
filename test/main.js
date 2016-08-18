@@ -7,7 +7,9 @@ global.should = chai.should()
 // source code
 import '../src/createAction'
 import '../src/handleAction'
+import '../src/handleMutations'
 
 // test code
 import './vuex1.x.spec'
 import './vuex2.x.spec'
+import './handleMutations.spec'
