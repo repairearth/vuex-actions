@@ -19,7 +19,7 @@ import { createAction, handleAction, $inject } from 'vuex-actions'
 
 ### `createAction(type, payloadCreator = Identity)`
 
-Wraps a `Vuex` action so that it has the ability to handle both normal actions and promise-based async actions, commit mutations with the resolved payload created by `payloadCreator`. If no payload creator is passed, or if it's not a function, the identity function is used. The parameter `type` is considered as a mutation's name, it will be automatically triggered in the action.
+Wraps a `Vuex` action so that it has the ability to handle both normal actions and promise-based async actions, commit mutations with the resolved payload created by `payloadCreator`. If no payload creator is passed, or if it's not a function, the identity function is used. **The parameter `type` is considered as a mutation's name**, it will be automatically triggered in the action.
 
 Example:
 
@@ -61,6 +61,27 @@ const store = new Vuex.Store({
 	    state.obj = mutation
 	  }
     })
+  }
+})
+```
+
+### `handleMutations(mutations)`
+Wraps a set of mutations with handleAction. The example above is the same as
+```js
+mutations: handleMutations({
+  SINGLE: (state, mutation) => {
+    state.obj = mutation
+  },
+  CHANGE: {
+    pending(state, mutation) {
+      state.obj = mutation
+    },
+    success(state, mutation) {
+      state.obj = mutation
+    },
+    error(state, mutation) {
+      state.obj = mutation
+    }
   }
 })
 ```
