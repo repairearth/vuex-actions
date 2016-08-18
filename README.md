@@ -14,7 +14,7 @@ Well tested with vuex@1.0.0-rc.2 and vuex@2.0.0-rc.3, for other versions, use at
 npm install --save vuex-actions
 ```
 ```js
-import { createAction, handleAction, $inject } from 'vuex-actions'
+import { createAction, handleAction, handleMutations, $inject } from 'vuex-actions'
 ```
 
 ### `createAction(type, payloadCreator = Identity)`
