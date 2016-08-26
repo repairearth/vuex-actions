@@ -6,6 +6,7 @@
 [![Codecov](https://img.shields.io/codecov/c/github/weinot/vuex-actions.svg?maxAge=2592000)](https://codecov.io/gh/weinot/vuex-actions)
 [![npm](https://img.shields.io/npm/v/vuex-actions.svg?style=flat)](https://www.npmjs.com/package/vuex-actions)
 [![npm](https://img.shields.io/npm/dt/vuex-actions.svg?style=flat)](https://www.npmjs.com/package/vuex-actions)
+[![JavaScript Style Guide](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
 [![npm](https://img.shields.io/npm/l/vuex-actions.svg?maxAge=2592000)]()
 
 Well tested with vuex@1.0.0-rc.2 and vuex@2.0.0-rc.3, for other versions, use at your own risk :red_circle:.
@@ -66,7 +67,7 @@ const store = new Vuex.Store({
 ```
 
 ### `handleMutations(mutations)`
-Wraps a set of mutations with handleAction. The example above is the same as
+Wraps a set of mutations with handleAction. The example above is the same as below
 ```js
 mutations: handleMutations({
   SINGLE: (state, mutation) => {
