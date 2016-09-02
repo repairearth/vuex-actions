@@ -1,5 +1,5 @@
 export const isFunc = v => typeof v === 'function'
-export const isObject = v => Object.prototype.toString.call(v) === '[object Object]'
+export const isObject = v => v && typeof v === 'object'
 export const isPromise = obj => isObject(obj) && isFunc(obj.then)
 export const hasPromise = obj => isObject(obj) && Object.keys(obj).some(key => isPromise(obj[key]))
 export const hasDeps = fn => getDeps(fn) !== null
