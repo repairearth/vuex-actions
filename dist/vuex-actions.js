@@ -1,5 +1,5 @@
 /*!
- * Vuex actions v1.1.0
+ * Vuex actions v1.1.1
  * (c) 2016 vnot
  * Released under the MIT License.
  */
@@ -8,6 +8,12 @@
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.VuexActions = global.VuexActions || {})));
 }(this, function (exports) { 'use strict';
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  };
 
   var toConsumableArray = function (arr) {
     if (Array.isArray(arr)) {
@@ -23,7 +29,7 @@
     return typeof v === 'function';
   };
   var isObject = function isObject(v) {
-    return Object.prototype.toString.call(v) === '[object Object]';
+    return v && (typeof v === 'undefined' ? 'undefined' : _typeof(v)) === 'object';
   };
   var isPromise = function isPromise(obj) {
     return isObject(obj) && isFunc(obj.then);
