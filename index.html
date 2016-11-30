@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Vuex-actions by weinot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Vuex-actions</h1>
+      <h2 class="project-tagline">Action utilities for Vuex, supports promise-based async actions.</h2>
+      <a href="https://github.com/weinot/vuex-actions" class="btn">View on GitHub</a>
+      <a href="https://github.com/weinot/vuex-actions/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/weinot/vuex-actions/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="vuex-actions" class="anchor" href="#vuex-actions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>vuex-actions</h1>
+
+<blockquote>
+<p>Action utilities for Vuex, supports promise-based async actions, inspired by <a href="https://github.com/acdlite/redux-actions">redux-actions</a>.</p>
+</blockquote>
+
+<p><a href="https://travis-ci.org/weinot/vuex-actions"><img src="https://img.shields.io/travis/weinot/vuex-actions.svg?style=flat" alt="Travis"></a>
+<a href="https://codecov.io/gh/weinot/vuex-actions"><img src="https://img.shields.io/codecov/c/github/weinot/vuex-actions.svg?maxAge=2592000" alt="Codecov"></a>
+<a href="https://www.npmjs.com/package/vuex-actions"><img src="https://img.shields.io/npm/v/vuex-actions.svg?style=flat" alt="npm"></a>
+<a href="https://www.npmjs.com/package/vuex-actions"><img src="https://img.shields.io/npm/dt/vuex-actions.svg?style=flat" alt="npm"></a>
+<a href="http://standardjs.com/"><img src="https://img.shields.io/badge/code%20style-standard-brightgreen.svg" alt="JavaScript Style Guide"></a>
+<a href=""><img src="https://img.shields.io/npm/l/vuex-actions.svg?maxAge=2592000" alt="npm"></a></p>
+
+<p>Well tested with vuex@1.0.0-rc.2 and vuex@2.0.0-rc.3, for other versions, use at your own risk <g-emoji alias="red_circle" fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f534.png" ios-version="6.0">🔴</g-emoji>.</p>
+
+<div class="highlight highlight-source-js"><pre>npm install <span class="pl-k">--</span>save vuex<span class="pl-k">-</span>actions</pre></div>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">import</span> { <span class="pl-smi">createAction</span>, <span class="pl-smi">handleAction</span>, <span class="pl-smi">handleMutations</span>, $<span class="pl-smi">inject</span> } <span class="pl-k">from</span> <span class="pl-s"><span class="pl-pds">'</span>vuex-actions<span class="pl-pds">'</span></span></pre></div>
+
+<h3>
+<a id="createactiontype-payloadcreator--identity" class="anchor" href="#createactiontype-payloadcreator--identity" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><code>createAction(type, payloadCreator = Identity)</code>
+</h3>
+
+<p>Wraps a <code>Vuex</code> action so that it has the ability to handle both normal actions and promise-based async actions, commit mutations with the resolved payload created by <code>payloadCreator</code>. If no payload creator is passed, or if it's not a function, the identity function is used. <strong>The parameter <code>type</code> is considered as a mutation's name</strong>, it will be automatically triggered in the action.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">let</span> increment <span class="pl-k">=</span> <span class="pl-en">createAction</span>(<span class="pl-s"><span class="pl-pds">'</span>INCREMENT<span class="pl-pds">'</span></span>, <span class="pl-smi">amount</span> <span class="pl-k">=&gt;</span> amount)
+<span class="pl-c">// same as</span>
+increment <span class="pl-k">=</span> <span class="pl-en">createAction</span>(<span class="pl-s"><span class="pl-pds">'</span>INCREMENT<span class="pl-pds">'</span></span>)
+
+<span class="pl-en">expect</span>(increment).<span class="pl-smi">to</span>.<span class="pl-smi">be</span>.<span class="pl-en">a</span>(<span class="pl-s"><span class="pl-pds">'</span>function<span class="pl-pds">'</span></span>)</pre></div>
+
+<h3>
+<a id="handleactionhandlers" class="anchor" href="#handleactionhandlers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><code>handleAction(handlers)</code>
+</h3>
+
+<p>Wraps a mutation handler so that it can handle async actions created by <code>createAction</code>.</p>
+
+<p>If a single handler is passed, it is used to handle both normal actions and success actions. (A success action is analogous to a resolved promise)</p>
+
+<p>Otherwise, you can specify separate handlers for pending(), success() and error(). It's useful for tracking async action's status.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">store</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Vuex.Store</span>({
+  state<span class="pl-k">:</span> {
+    obj<span class="pl-k">:</span> <span class="pl-c1">null</span>
+  },
+  mutations<span class="pl-k">:</span> {
+    <span class="pl-c1">SINGLE</span><span class="pl-k">:</span> <span class="pl-en">handleAction</span>((<span class="pl-smi">state</span>, <span class="pl-smi">mutation</span>) <span class="pl-k">=&gt;</span> {
+      <span class="pl-smi">state</span>.<span class="pl-smi">obj</span> <span class="pl-k">=</span> mutation
+    }),
+    <span class="pl-c1">CHANGE</span><span class="pl-k">:</span> <span class="pl-en">handleAction</span>({
+      <span class="pl-en">pending</span> (<span class="pl-smi">state</span>, <span class="pl-smi">mutation</span>) {
+        <span class="pl-smi">state</span>.<span class="pl-smi">obj</span> <span class="pl-k">=</span> mutation
+      },
+      <span class="pl-en">success</span> (<span class="pl-smi">state</span>, <span class="pl-smi">mutation</span>) {
+        <span class="pl-smi">state</span>.<span class="pl-smi">obj</span> <span class="pl-k">=</span> mutation
+      },
+      <span class="pl-en">error</span> (<span class="pl-smi">state</span>, <span class="pl-smi">mutation</span>) {
+        <span class="pl-smi">state</span>.<span class="pl-smi">obj</span> <span class="pl-k">=</span> mutation
+      }
+    })
+  }
+})</pre></div>
+
+<h3>
+<a id="handlemutationsmutations" class="anchor" href="#handlemutationsmutations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><code>handleMutations(mutations)</code>
+</h3>
+
+<p>Wraps a set of mutations with handleAction. The example above is the same as below</p>
+
+<div class="highlight highlight-source-js"><pre>mutations<span class="pl-k">:</span> <span class="pl-en">handleMutations</span>({
+  <span class="pl-en">SINGLE</span><span class="pl-k">:</span> (<span class="pl-smi">state</span>, <span class="pl-smi">mutation</span>) <span class="pl-k">=&gt;</span> {
+    <span class="pl-smi">state</span>.<span class="pl-smi">obj</span> <span class="pl-k">=</span> mutation
+  },
+  <span class="pl-c1">CHANGE</span><span class="pl-k">:</span> {
+    <span class="pl-en">pending</span>(<span class="pl-smi">state</span>, <span class="pl-smi">mutation</span>) {
+      <span class="pl-smi">state</span>.<span class="pl-smi">obj</span> <span class="pl-k">=</span> mutation
+    },
+    <span class="pl-en">success</span>(<span class="pl-smi">state</span>, <span class="pl-smi">mutation</span>) {
+      <span class="pl-smi">state</span>.<span class="pl-smi">obj</span> <span class="pl-k">=</span> mutation
+    },
+    <span class="pl-en">error</span>(<span class="pl-smi">state</span>, <span class="pl-smi">mutation</span>) {
+      <span class="pl-smi">state</span>.<span class="pl-smi">obj</span> <span class="pl-k">=</span> mutation
+    }
+  }
+})</pre></div>
+
+<p><strong>Normal actions</strong></p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">vm</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Vue</span>({
+  store,
+  vuex<span class="pl-k">:</span> {
+    actions<span class="pl-k">:</span> {
+      single<span class="pl-k">:</span> <span class="pl-en">createAction</span>(<span class="pl-s"><span class="pl-pds">'</span>SINGLE<span class="pl-pds">'</span></span>)
+    }
+  }
+})
+
+<span class="pl-smi">vm</span>.<span class="pl-en">single</span>(<span class="pl-c1">1</span>)
+<span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>).<span class="pl-smi">to</span>.<span class="pl-en">equal</span>(<span class="pl-c1">1</span>)
+
+<span class="pl-smi">vm</span>.<span class="pl-en">single</span>(<span class="pl-c1">null</span>)
+<span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>).<span class="pl-smi">to</span>.<span class="pl-smi">be</span>.<span class="pl-smi">null</span>
+
+<span class="pl-smi">vm</span>.<span class="pl-en">single</span>({a<span class="pl-k">:</span> <span class="pl-c1">1</span>})
+<span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>).<span class="pl-smi">to</span>.<span class="pl-smi">be</span>.<span class="pl-en">an</span>(<span class="pl-s"><span class="pl-pds">'</span>object<span class="pl-pds">'</span></span>)
+
+<span class="pl-c">// for vuex 2.x, the usage is similar</span>
+<span class="pl-smi">store</span>.<span class="pl-en">dispatch</span>(<span class="pl-s"><span class="pl-pds">'</span>single<span class="pl-pds">'</span></span>, <span class="pl-c1">1</span>)
+<span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>).<span class="pl-smi">to</span>.<span class="pl-en">equal</span>(<span class="pl-c1">1</span>)</pre></div>
+
+<p><strong>Async actions</strong></p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">vm</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Vue</span>({
+  store,
+  vuex<span class="pl-k">:</span> {
+    actions<span class="pl-k">:</span> {
+      change<span class="pl-k">:</span> <span class="pl-en">createAction</span>(<span class="pl-s"><span class="pl-pds">'</span>CHANGE<span class="pl-pds">'</span></span>)
+    }
+  }
+})</pre></div>
+
+<p>Give a promise as payload</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-smi">vm</span>.<span class="pl-en">change</span>(<span class="pl-c1">Promise</span>.<span class="pl-en">resolve</span>(<span class="pl-c1">1</span>)).<span class="pl-en">then</span>(() <span class="pl-k">=&gt;</span> {
+  <span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>).<span class="pl-smi">to</span>.<span class="pl-en">equal</span>(<span class="pl-c1">1</span>)
+})
+
+<span class="pl-smi">vm</span>.<span class="pl-en">change</span>(<span class="pl-c1">Promise</span>.<span class="pl-en">reject</span>(<span class="pl-k">new</span> <span class="pl-en">Error</span>(<span class="pl-s"><span class="pl-pds">'</span>wow, it<span class="pl-cce">\'</span>s rejected<span class="pl-pds">'</span></span>))).<span class="pl-en">then</span>(() <span class="pl-k">=&gt;</span> {
+  <span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>).<span class="pl-smi">to</span>.<span class="pl-smi">be</span>.<span class="pl-smi">an</span>.<span class="pl-en">instanceof</span>(<span class="pl-c1">Error</span>)
+  <span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>.<span class="pl-smi">message</span>).<span class="pl-smi">to</span>.<span class="pl-en">equal</span>(<span class="pl-s"><span class="pl-pds">'</span>wow, it<span class="pl-cce">\'</span>s rejected<span class="pl-pds">'</span></span>)
+})</pre></div>
+
+<p>Handle parallel promises in payload</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">p1</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>) <span class="pl-k">=&gt;</span> <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> <span class="pl-en">resolve</span>(<span class="pl-c1">1</span>), <span class="pl-c1">300</span>))
+<span class="pl-k">const</span> <span class="pl-c1">p2</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>) <span class="pl-k">=&gt;</span> <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> <span class="pl-en">resolve</span>(<span class="pl-c1">2</span>), <span class="pl-c1">300</span>))
+
+<span class="pl-smi">vm</span>.<span class="pl-en">change</span>({
+  p1,
+  p2,
+  other<span class="pl-k">:</span> <span class="pl-c1">3</span>
+}).<span class="pl-en">then</span>(() <span class="pl-k">=&gt;</span> {
+  <span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>).<span class="pl-smi">to</span>.<span class="pl-en">eql</span>({
+    p1<span class="pl-k">:</span> <span class="pl-c1">1</span>,
+    p2<span class="pl-k">:</span> <span class="pl-c1">2</span>,
+    other<span class="pl-k">:</span> <span class="pl-c1">3</span>
+  })
+})</pre></div>
+
+<p>Handle rejected promise in payload</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">p1</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>) <span class="pl-k">=&gt;</span> <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> <span class="pl-en">resolve</span>(<span class="pl-c1">1</span>), <span class="pl-c1">100</span>))
+<span class="pl-k">const</span> <span class="pl-c1">p2</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+  <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> <span class="pl-en">reject</span>(<span class="pl-k">new</span> <span class="pl-en">Error</span>(<span class="pl-s"><span class="pl-pds">'</span>Something went wrong<span class="pl-pds">'</span></span>)), <span class="pl-c1">100</span>)
+})
+
+<span class="pl-smi">vm</span>.<span class="pl-en">change</span>({
+  p1,
+  p2,
+  other<span class="pl-k">:</span> <span class="pl-c1">3</span>
+}).<span class="pl-en">then</span>(() <span class="pl-k">=&gt;</span> {
+  <span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>).<span class="pl-smi">to</span>.<span class="pl-smi">be</span>.<span class="pl-en">an</span>(<span class="pl-s"><span class="pl-pds">'</span>error<span class="pl-pds">'</span></span>)
+  <span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>.<span class="pl-smi">message</span>).<span class="pl-smi">to</span>.<span class="pl-en">equal</span>(<span class="pl-s"><span class="pl-pds">'</span>Something went wrong<span class="pl-pds">'</span></span>)
+})</pre></div>
+
+<p>Using <code>$inject</code> to handle promises (has denpendencies) in sequence</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">p1</span> <span class="pl-k">=</span> <span class="pl-c1">Promise</span>.<span class="pl-en">resolve</span>(<span class="pl-c1">1</span>)
+<span class="pl-k">const</span> <span class="pl-c1">p2</span> <span class="pl-k">=</span> <span class="pl-c1">Promise</span>.<span class="pl-en">resolve</span>(<span class="pl-c1">2</span>)
+<span class="pl-k">const</span> <span class="pl-c1">getP3</span> <span class="pl-k">=</span> <span class="pl-smi">p2</span> <span class="pl-k">=&gt;</span> <span class="pl-c1">Promise</span>.<span class="pl-en">resolve</span>(p2 <span class="pl-k">+</span> <span class="pl-c1">1</span>)
+<span class="pl-k">const</span> <span class="pl-c1">getP4</span> <span class="pl-k">=</span> <span class="pl-smi">p3</span> <span class="pl-k">=&gt;</span> <span class="pl-c1">Promise</span>.<span class="pl-en">resolve</span>(p3 <span class="pl-k">+</span> <span class="pl-c1">1</span>)
+<span class="pl-k">const</span> <span class="pl-c1">getP5</span> <span class="pl-k">=</span> (<span class="pl-smi">p3</span>, <span class="pl-smi">p4</span>) <span class="pl-k">=&gt;</span> <span class="pl-c1">Promise</span>.<span class="pl-en">resolve</span>(p3 <span class="pl-k">+</span> p4)
+<span class="pl-k">const</span> <span class="pl-c1">getP6</span> <span class="pl-k">=</span> (<span class="pl-smi">p4</span>, <span class="pl-smi">p5</span>) <span class="pl-k">=&gt;</span> <span class="pl-c1">Promise</span>.<span class="pl-en">resolve</span>(p4 <span class="pl-k">+</span> p5)
+
+<span class="pl-smi">store</span>.<span class="pl-en">dispatch</span>(<span class="pl-c1">CHANGE</span>, {
+  p1,
+  p2,
+  p3<span class="pl-k">:</span> <span class="pl-en">$inject</span>(getP3)(<span class="pl-s"><span class="pl-pds">'</span>p2<span class="pl-pds">'</span></span>),
+  p4<span class="pl-k">:</span> <span class="pl-en">$inject</span>(getP4)(<span class="pl-s"><span class="pl-pds">'</span>p3<span class="pl-pds">'</span></span>),
+  p5<span class="pl-k">:</span> <span class="pl-en">$inject</span>(getP5)(<span class="pl-s"><span class="pl-pds">'</span>p3<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>p4<span class="pl-pds">'</span></span>),
+  p6<span class="pl-k">:</span> <span class="pl-en">$inject</span>(getP6)(<span class="pl-s"><span class="pl-pds">'</span>p4<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>p5<span class="pl-pds">'</span></span>),
+  other<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>other<span class="pl-pds">'</span></span>
+}).<span class="pl-en">then</span>(() <span class="pl-k">=&gt;</span> {
+  <span class="pl-en">expect</span>(<span class="pl-smi">store</span>.<span class="pl-smi">state</span>.<span class="pl-smi">obj</span>).<span class="pl-smi">to</span>.<span class="pl-en">eql</span>({
+    p1<span class="pl-k">:</span> <span class="pl-c1">1</span>,
+    p2<span class="pl-k">:</span> <span class="pl-c1">2</span>,
+    p3<span class="pl-k">:</span> <span class="pl-c1">3</span>,
+    p4<span class="pl-k">:</span> <span class="pl-c1">4</span>,
+    p5<span class="pl-k">:</span> <span class="pl-c1">7</span>,
+    p6<span class="pl-k">:</span> <span class="pl-c1">11</span>,
+    other<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>other<span class="pl-pds">'</span></span>
+  })
+})</pre></div>
+
+<p>Access origin args in the dependent function</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">testArgs</span> <span class="pl-k">=</span> <span class="pl-en">createAction</span>(<span class="pl-s"><span class="pl-pds">'</span>CHANGE<span class="pl-pds">'</span></span>, <span class="pl-smi">options</span> <span class="pl-k">=&gt;</span> ({
+  p1<span class="pl-k">:</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>) <span class="pl-k">=&gt;</span> <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> <span class="pl-en">resolve</span>(<span class="pl-c1">1</span>), <span class="pl-c1">10</span>)),
+  p2<span class="pl-k">:</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>) <span class="pl-k">=&gt;</span> <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> <span class="pl-en">resolve</span>(<span class="pl-c1">2</span>), <span class="pl-c1">20</span>)),
+  p3<span class="pl-k">:</span> <span class="pl-en">$inject</span>((<span class="pl-smi">p1</span>, <span class="pl-smi">p2</span>, <span class="pl-smi">options</span>) <span class="pl-k">=&gt;</span> {
+    <span class="pl-en">expect</span>(p1).<span class="pl-smi">to</span>.<span class="pl-en">equal</span>(<span class="pl-c1">1</span>)
+    <span class="pl-en">expect</span>(p2).<span class="pl-smi">to</span>.<span class="pl-en">equal</span>(<span class="pl-c1">2</span>)
+    <span class="pl-en">expect</span>(options).<span class="pl-smi">to</span>.<span class="pl-smi">be</span>.<span class="pl-en">an</span>(<span class="pl-s"><span class="pl-pds">'</span>object<span class="pl-pds">'</span></span>)
+    <span class="pl-en">expect</span>(<span class="pl-smi">options</span>.<span class="pl-smi">opt1</span>).<span class="pl-smi">to</span>.<span class="pl-en">equal</span>(<span class="pl-s"><span class="pl-pds">'</span>opt1<span class="pl-pds">'</span></span>)
+    <span class="pl-en">expect</span>(<span class="pl-smi">options</span>.<span class="pl-smi">opt2</span>).<span class="pl-smi">to</span>.<span class="pl-en">equal</span>(<span class="pl-s"><span class="pl-pds">'</span>opt2<span class="pl-pds">'</span></span>)
+    <span class="pl-k">return</span> <span class="pl-c1">Promise</span>.<span class="pl-en">resolve</span>(p1 <span class="pl-k">+</span> p2)
+  })(<span class="pl-s"><span class="pl-pds">'</span>p1<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>p2<span class="pl-pds">'</span></span>)
+}))
+
+<span class="pl-en">testArgs</span>(<span class="pl-smi">vm</span>.<span class="pl-smi">$store</span>, {
+  opt1<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>opt1<span class="pl-pds">'</span></span>,
+  opt2<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>opt2<span class="pl-pds">'</span></span>
+})</pre></div>
+
+<h3>
+<a id="usage-with-plugin" class="anchor" href="#usage-with-plugin" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage with plugin</h3>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">store</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Vuex.Store</span>({
+  state<span class="pl-k">:</span> {
+    obj<span class="pl-k">:</span> <span class="pl-c1">null</span>,
+    status<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>
+  },
+  plugins<span class="pl-k">:</span> [
+    <span class="pl-smi">store</span> <span class="pl-k">=&gt;</span> {
+      <span class="pl-smi">store</span>.<span class="pl-en">subscribe</span>((<span class="pl-smi">mutation</span>, <span class="pl-smi">state</span>) <span class="pl-k">=&gt;</span> {
+        <span class="pl-c">// vuex 1.x</span>
+        <span class="pl-smi">state</span>.<span class="pl-c1">status</span> <span class="pl-k">=</span> <span class="pl-smi">mutation</span>.<span class="pl-smi">payload</span>[<span class="pl-c1">0</span>].<span class="pl-smi">__status__</span>
+        <span class="pl-c">// vuex 2.x</span>
+        <span class="pl-smi">state</span>.<span class="pl-c1">status</span> <span class="pl-k">=</span> <span class="pl-smi">mutation</span>.<span class="pl-smi">payload</span>.<span class="pl-smi">__status__</span>
+
+        <span class="pl-c">// status can be one of ['pending', 'success', 'error']</span>
+      })
+    }
+  ]
+})</pre></div>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/weinot/vuex-actions">Vuex-actions</a> is maintained by <a href="https://github.com/weinot">weinot</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
